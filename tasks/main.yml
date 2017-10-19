@@ -1,0 +1,16 @@
+---
+- name: install memcached
+  yum: name={{ item }} state=present
+  with_items:
+    - memcached-{{ memcached_version }}
+    - memcached-devel
+
+- name: register Memcached is started and enabled on boot
+  systemd: name=memcached.service state=started enabled=yes daemon_reload=yes
+
+- name: put memcached configuration file
+  template: src=memcached.j2 dest=/etc/sysconfig/memcached mode=0644 owner=root group=root
+  notify: restart memcached
+
+- name: wait for open port
+  wait_for: port={{ memcached_port }} delay=5
